@@ -1,0 +1,26 @@
+# SupplySentinel/requirements.txt
+# Project dependencies
+
+# FastAPI and server
+fastapi
+uvicorn
+
+# NiceGUI for the frontend dashboard
+nicegui
+
+# MongoDB connectivity
+motor  # For async MongoDB operations with FastAPI
+pymongo  # For synchronous MongoDB operations (optional, can remove if using motor exclusively)
+dnspython  # For MongoDB Atlas connection strings
+
+# API integrations
+requests  # For making HTTP requests to OpenWeatherMap and NewsAPI
+
+# Sentiment analysis
+textblob  # For NLP and sentiment analysis on news and X data
+
+# Environment variable management
+python-dotenv  # For loading environment variables from .env
+
+# Data validation (dependency of FastAPI, included for clarity)
+pydantic

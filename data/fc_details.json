@@ -1,0 +1,184 @@
+[
+  {
+    "FC_ID": "LAX1",
+    "FC_Name": "Los Angeles FC 1",
+    "Latitude": 34.0522,
+    "Longitude": -118.2437,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "SEA1",
+    "FC_Name": "Seattle FC 1",
+    "Latitude": 47.6062,
+    "Longitude": -122.3321,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "JFK8",
+    "FC_Name": "New York FC 8",
+    "Latitude": 40.7128,
+    "Longitude": -74.0060,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "ONT8",
+    "FC_Name": "Ontario FC 8",
+    "Latitude": 34.0633,
+    "Longitude": -117.6509,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "DFW6",
+    "FC_Name": "Dallas FC 6",
+    "Latitude": 32.7767,
+    "Longitude": -96.7970,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "MDW2",
+    "FC_Name": "Chicago FC 2",
+    "Latitude": 41.8781,
+    "Longitude": -87.6298,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "ATL6",
+    "FC_Name": "Atlanta FC 6",
+    "Latitude": 33.7490,
+    "Longitude": -84.3880,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "PHX3",
+    "FC_Name": "Phoenix FC 3",
+    "Latitude": 33.4484,
+    "Longitude": -112.0740,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "SLC1",
+    "FC_Name": "Salt Lake City FC 1",
+    "Latitude": 40.7608,
+    "Longitude": -111.8910,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "MCO1",
+    "FC_Name": "Orlando FC 1",
+    "Latitude": 28.5383,
+    "Longitude": -81.3792,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "BNA2",
+    "FC_Name": "Nashville FC 2",
+    "Latitude": 36.1627,
+    "Longitude": -86.7816,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "DEN3",
+    "FC_Name": "Denver FC 3",
+    "Latitude": 39.7392,
+    "Longitude": -104.9903,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "BOS7",
+    "FC_Name": "Boston FC 7",
+    "Latitude": 42.3601,
+    "Longitude": -71.0589,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "CLT2",
+    "FC_Name": "Charlotte FC 2",
+    "Latitude": 35.2271,
+    "Longitude": -80.8431,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "HOU1",
+    "FC_Name": "Houston FC 1",
+    "Latitude": 29.7604,
+    "Longitude": -95.3698,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "IND9",
+    "FC_Name": "Indianapolis FC 9",
+    "Latitude": 39.7684,
+    "Longitude": -86.1581,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "MSP1",
+    "FC_Name": "Minneapolis FC 1",
+    "Latitude": 44.9778,
+    "Longitude": -93.2650,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "STL8",
+    "FC_Name": "St. Louis FC 8",
+    "Latitude": 38.6270,
+    "Longitude": -90.1994,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "SAT1",
+    "FC_Name": "San Antonio FC 1",
+    "Latitude": 29.4241,
+    "Longitude": -98.4936,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "PDX9",
+    "FC_Name": "Portland FC 9",
+    "Latitude": 45.5051,
+    "Longitude": -122.6750,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "TPA1",
+    "FC_Name": "Tampa FC 1",
+    "Latitude": 27.9506,
+    "Longitude": -82.4572,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "CVG1",
+    "FC_Name": "Cincinnati FC 1",
+    "Latitude": 39.1031,
+    "Longitude": -84.5120,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "RDU1",
+    "FC_Name": "Raleigh FC 1",
+    "Latitude": 35.7796,
+    "Longitude": -78.6382,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "SFO5",
+    "FC_Name": "San Francisco FC 5",
+    "Latitude": 37.7749,
+    "Longitude": -122.4194,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "PHL7",
+    "FC_Name": "Philadelphia FC 7",
+    "Latitude": 39.9526,
+    "Longitude": -75.1652,
+    "Risk_Score": 0.0
+  },
+  {
+    "FC_ID": "LAS2",
+    "FC_Name": "Las Vegas FC 2",
+    "Latitude": 36.1699,
+    "Longitude": -115.1398,
+    "Risk_Score": 0.0
+  }
+]
