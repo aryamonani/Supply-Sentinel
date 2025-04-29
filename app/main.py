@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # SupplySentinel/app/main.py
 # Application entry point: launches FastAPI backend and NiceGUI frontend
 
@@ -40,3 +41,11 @@ async def update_risk(fc_id: str, risk_score: float):
 # Launch NiceGUI frontend (to be implemented in dashboard/routes.py)
 if __name__ == "__main__":
     nicegui.run(app=app, port=8080)
+=======
+import asyncio
+from app.agent.background_agent import start_agent_loop
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(start_agent_loop())
+>>>>>>> main
