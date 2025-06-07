@@ -1,6 +1,10 @@
 # .gitignore
 
-.env
+# From GitHub/Best Practices
+*.pyc
 __pycache__/
-*.pycvenv/
+
+# From local changes
+.env
 .DS_Store
+venv/
