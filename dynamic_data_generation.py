@@ -26,44 +26,6 @@ ATLAS_PRIVATE_KEY = os.environ.get("ATLAS_PRIVATE_KEY")
 PROJECT_ID = os.environ.get("PROJECT_ID")
 MONGO_URI = os.environ.get("MONGO_URI")
 
-'''# Function to get the user's public IP
-def get_public_ip():
-    try:
-        response = requests.get("https://ifconfig.me", timeout=5)
-        response.raise_for_status()
-        public_ip = response.text.strip()
-        logger.info(f"Public IP fetched: {public_ip}")
-        return public_ip
-    except Exception as e:
-        logger.error(f"Failed to fetch public IP: {str(e)}")
-        raise SystemExit(f"Exiting due to failure in fetching public IP: {str(e)}")
-
-# Function to whitelist the IP in MongoDB Atlas
-def whitelist_ip(ip_address):
-    try:
-        auth = base64.b64encode(f"{ATLAS_PUBLIC_KEY}:{ATLAS_PRIVATE_KEY}".encode()).decode()
-        headers = {
-            "Authorization": f"Basic {auth}",
-            "Content-Type": "application/json"
-        }
-        payload = [
-            {
-                "ipAddress": f"{ip_address}/32",
-                "comment": "Dynamically whitelisted for Supply Sentinel project"
-            }
-        ]
-        url = f"https://cloud.mongodb.com/api/atlas/v1.0/groups/{PROJECT_ID}/accessList"
-        response = requests.post(url, headers=headers, json=payload)
-        response.raise_for_status()
-        logger.info(f"Successfully whitelisted IP: {ip_address}")
-    except Exception as e:
-        logger.error(f"Failed to whitelist IP {ip_address}: {str(e)}")
-        # Continue execution; IP might already be whitelisted
-
-# Whitelist the current IP before connecting to MongoDB
-public_ip = get_public_ip()
-whitelist_ip(public_ip)'''
-
 # MongoDB Setup
 try:
     client = MongoClient(
@@ -86,6 +48,26 @@ inventory_collection = db["inventory"]
 
 # Initialize Faker for realistic data
 fake = Faker()
+
+# City to State Mapping
+city_to_state = {
+    "New York": "NY",
+    "Buffalo": "NY",
+    "Rochester": "NY",
+    "Newark": "NJ",
+    "Jersey City": "NJ",
+    "Paterson": "NJ",
+    "Philadelphia": "PA",
+    "Pittsburgh": "PA",
+    "Allentown": "PA",
+    "Boston": "MA",
+    "Worcester": "MA",
+    "Springfield": "MA",
+    "Baltimore": "MD",
+    "Silver Spring": "MD",
+    "Frederick": "MD",
+    "Washington": "DC"
+}
 
 # Reduced FC List to 15 FCs (one per city, excluding "Washington")
 fcs = [
@@ -110,7 +92,7 @@ city_coordinates = {
     "Washington": (38.9072, -77.0369)  # Included for completeness, though no FC for Washington
 }
 
-# Possible Product Categories and Descriptions (Expanded to ensure more emergency categories)
+# Possible Product Categories and Descriptions
 product_data_templates = {
     "Health & Household": [
         {"desc": "First Aid Kit, 100 Pieces", "emergency_keyword": "First Aid Kit", "is_emergency": True},
@@ -158,65 +140,59 @@ product_data_templates = {
     ]
 }
 
-# --- NEW: Generate a set of predefined products with fixed SKUs ---
-# This ensures consistency between inventory and shipments
+# Generate a set of predefined products with fixed SKUs
 defined_products = []
 for category, templates in product_data_templates.items():
     for template in templates:
         defined_products.append({
-            "Product_SKU": f"SKU{random.randint(100000, 999999)}", # Fixed SKU for this product template
+            "Product_SKU": f"SKU{random.randint(100000, 999999)}",
             "L1_Category": category,
             "Product_Description": template["desc"],
-            "Is_Emergency": template["is_emergency"] # Explicitly mark for better control
+            "Is_Emergency": template["is_emergency"]
         })
 
-# Randomize FC order for distribution later
+# Randomize FC order for distribution
 random.shuffle(fcs)
 
 # Helper Functions
 def generate_sku():
-    """Generate a random SKU like B07CZQ56VA."""
-    # This function is now mostly replaced by defined_products but kept for consistency if needed elsewhere.
     prefix = "B0" + random.choice(string.ascii_uppercase) + random.choice(string.digits)
     suffix = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
     return prefix + suffix
 
 def generate_inventory_id():
-    """Generate a unique inventory ID."""
     return f"INV{random.randint(100000, 999999)}"
 
 def generate_shipment_id():
-    """Generate a unique shipment ID."""
     return f"S{random.randint(100, 999)}"
 
 def get_est_datetime():
-    """Get current time in EST."""
     est = pytz.timezone("America/New_York")
-    return datetime.now(est)
+    return datetime.now(est).strftime("%Y-%m-%d %H:%M:%S")
 
 # Generate Fulfillment Centers
 def generate_fulfillment_centers():
-    """Generate or update fulfillment center data."""
     for fc in fcs:
         fc_id = fc_to_fc_id[fc]
         city = fc_to_city[fc]
         base_lat, base_lon = city_coordinates[city]
-        # Add small randomization to coordinates for uniqueness
         lat = base_lat + random.uniform(-0.01, 0.01)
         lon = base_lon + random.uniform(-0.01, 0.01)
         current_risk_score = random.randint(0, 100)
         max_risk_score = random.randint(5, 50)
-        flagged = current_risk_score > 50  # Flag if high risk
+        flagged = current_risk_score > 50
         
         doc = {
             "FC_ID": fc_id,
             "FC_Name": fc,
-            "city": city,  # Include city field for dashboard use
+            "city": city,
             "Latitude": lat,
             "Longitude": lon,
             "current_risk_score": current_risk_score,
             "max_risk_score": max_risk_score,
-            "flagged": flagged
+            "flagged": flagged,
+            "re_routing_cost_multiplier": random.uniform(1.1, 1.5),
+            "re_routing_tat_adder_days": random.randint(1, 3)
         }
         fulfillment_centers_collection.update_one(
             {"FC_ID": fc_id},
@@ -227,25 +203,21 @@ def generate_fulfillment_centers():
 
 # Generate Shipments
 def generate_shipments():
-    """Generate or update shipment data, prioritizing emergency items and relevant routes."""
-    # Fetch existing FCs for source/destination selection
     all_fcs_data = list(fulfillment_centers_collection.find({}, {"FC_ID": 1, "city": 1, "Latitude": 1, "Longitude": 1}))
     if not all_fcs_data:
         logger.warning("No FCs found in DB to generate shipments against. Skipping shipment generation.")
         return
 
-    num_shipments_to_generate = random.randint(10, 25) # Generate more shipments
+    all_cities = list(city_coordinates.keys())  # All possible destination cities
+    num_shipments_to_generate = random.randint(10, 25)
     
     for i in range(num_shipments_to_generate):
         shipment_id = generate_shipment_id()
         
-        # Determine if this shipment should be an emergency item (40% chance)
-        is_emergency_shipment = random.random() < 0.4 
-
+        is_emergency_shipment = random.random() < 0.4
         if is_emergency_shipment:
-            # Pick a random emergency product from our defined list
             eligible_products = [p for p in defined_products if p["Is_Emergency"]]
-            if not eligible_products: continue # Skip if no emergency products defined
+            if not eligible_products: continue
             chosen_product = random.choice(eligible_products)
         else:
             chosen_product = random.choice(defined_products)
@@ -254,26 +226,26 @@ def generate_shipments():
         category = chosen_product["L1_Category"]
         description = chosen_product["Product_Description"]
 
-        # Choose a source FC (can be any FC for now)
         source_fc_doc = random.choice(all_fcs_data)
         source_fc_id = source_fc_doc["FC_ID"]
         source_lat, source_lon = source_fc_doc["Latitude"], source_fc_doc["Longitude"]
 
-        # Determine destination - try to make it relevant for re-routing
-        dest_fc_doc = random.choice(all_fcs_data) # Pick a random destination FC for coordinates
-        dest_lat, dest_lon = dest_fc_doc["Latitude"], dest_fc_doc["Longitude"]
-        dest_address = fake.address().split("\n")[0] + f", {dest_fc_doc['city']}, {fake.state_abbr()}"
+        dest_city = random.choice(all_cities)
+        dest_state = city_to_state[dest_city]
+        base_lat, base_lon = city_coordinates[dest_city]
+        dest_lat = base_lat + random.uniform(-0.01, 0.01)
+        dest_lon = base_lon + random.uniform(-0.01, 0.01)
+        dest_address = fake.address().split("\n")[0] + f", {dest_city}, {dest_state}"
 
-        # Ensure order volume can be fulfilled by some FC
         order_volume = random.randint(20, 500)
         
         doc = {
             "Shipment_ID": shipment_id,
             "Product_SKU": sku,
             "L1_Category": category,
-            "Product_Description": description, # Add description for context
+            "Product_Description": description,
             "Order_Volume": order_volume,
-            "Status": random.choice(["Pending", "In Transit", "Out for Delivery"]), # Exclude Delivered for active status
+            "Status": random.choice(["Pending", "In Transit", "Out for Delivery"]),
             "Route_Type": random.choice(["inbound", "outbound"]),
             "Source_FC_ID": source_fc_id,
             "Source_Lat": source_lat,
@@ -281,8 +253,10 @@ def generate_shipments():
             "Destination_Lat": dest_lat,
             "Destination_Lon": dest_lon,
             "Destination_Address": dest_address,
-            "Expected_Arrival": get_est_datetime() + timedelta(days=random.randint(1, 7)),
-            "Is_Emergency_Product": chosen_product["Is_Emergency"] # Store this for easier lookup if needed
+            "Expected_Arrival": get_est_datetime(),
+            "Is_Emergency_Product": chosen_product["Is_Emergency"],
+            "initial_shipping_cost": random.uniform(50.0, 500.0),
+            "initial_delivery_tat_days": random.randint(1, 7)
         }
         shipments_collection.update_one(
             {"Shipment_ID": shipment_id},
@@ -293,25 +267,25 @@ def generate_shipments():
 
 # Generate Inventory
 def generate_inventory():
-    """Generate or update inventory data based on defined products."""
+    cities = list(city_coordinates.keys())  # All possible cities
     for fc in fcs:
         fc_id = fc_to_fc_id[fc]
-        city = fc_to_city[fc]
         for product_template in defined_products:
             inventory_id = generate_inventory_id()
-            
+            random_city = random.choice(cities)
+            random_state = city_to_state[random_city]
             doc = {
                 "Inventory_ID": inventory_id,
                 "FC_ID": fc_id,
                 "L1_Category": product_template["L1_Category"],
-                "Quantity": random.randint(50, 1000), # Ensure enough quantity for shipments
+                "Quantity": random.randint(50, 1000),
                 "Product_SKU": product_template["Product_SKU"],
                 "Product_Description": product_template["Product_Description"],
-                "Is_Emergency_Defined": product_template["Is_Emergency"], # Store this too
-                "Final_Delivery_Address": fake.address().split("\n")[0] + f", {city}, {fake.state_abbr()}"
+                "Is_Emergency_Defined": product_template["Is_Emergency"],
+                "Final_Delivery_Address": fake.address().split("\n")[0] + f", {random_city}, {random_state}"
             }
             inventory_collection.update_one(
-                {"FC_ID": fc_id, "Product_SKU": product_template["Product_SKU"]}, # Use SKU for unique update
+                {"FC_ID": fc_id, "Product_SKU": product_template["Product_SKU"]},
                 {"$set": doc},
                 upsert=True
             )
@@ -320,17 +294,17 @@ def generate_inventory():
 # Main Loop for Continuous Updates
 def main():
     logger.info("Starting initial data generation for dynamic_data_generation.py...")
-    generate_fulfillment_centers() # Ensure FCs exist first
+    generate_fulfillment_centers()
     generate_inventory()
     generate_shipments()
     logger.info("Initial data generation complete. Starting continuous updates...")
 
     while True:
         logger.info(f"Generating incremental data at {get_est_datetime()}")
-        generate_inventory() # Update/add new inventory
-        generate_shipments() # Add new shipments
+        generate_inventory()
+        generate_shipments()
         logger.info("Incremental data generation complete, sleeping for 300 seconds...")
-        time.sleep(300)  # Update every 5 minutes
+        time.sleep(300)
 
 if __name__ == "__main__":
     main()
